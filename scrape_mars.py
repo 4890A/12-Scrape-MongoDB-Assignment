@@ -8,7 +8,7 @@ import re
 
 def init_browser():
     executable_path = {"executable_path": "/usr/local/bin/chromedriver"}
-    return Browser("chrome", **executable_path, headless=False)
+    return Browser("chrome", **executable_path, headless=True)
 
 
 def scrape_info(url):
@@ -68,7 +68,8 @@ def scrape_table():
     html = requests.get("https://space-facts.com/mars/").content
     # the second table has mars's facts
     df = pd.read_html(html)[1]
-    return df.to_html(classes="table", border=0)
+    df = df.rename(columns={0: "Property", 1: "Value"})
+    return df.to_html(index=False, classes=["table", "table-hover"], border=0)
 
 
 def scrape_hemisphere():
@@ -88,10 +89,15 @@ def scrape_hemisphere():
 
 
 def scrape():
+    print("scraping nasa news")
     news_title, news_p = scrape_nasa_news()
+    print("scraping space images")
     featured_img_url = scrape_nasa_spaceimages()
+    print("scraping twitter")
     last_tweet = scrape_twitter()
+    print("scraping facts table")
     facts_df = scrape_table()
+    print("scraping mars hemi sphere info")
     hemisphere_img_urls = scrape_hemisphere()
     results = {
         "news_title": news_title,
@@ -101,5 +107,4 @@ def scrape():
         "facts_df": facts_df,
         "hemisphere_img_urls": hemisphere_img_urls,
     }
-    print(results)
     return results

@@ -5,15 +5,20 @@ import scrape_mars
 app = Flask(__name__)
 
 mongo = PyMongo(app, uri="mongodb://localhost:27017/mars")
-#mongo.db.mars_data.drop()
+mongo.db.mars_data.drop()
 
 @app.route("/")
 def home():
-    #mongo.db.mars_data.drop()
-    #results = scrape_mars.scrape()
     mars_data = mongo.db.mars_data
-    # mars_data.update({}, results, upsert=True)
     return render_template("index.html", mars_data =  mars_data.find_one())
+
+@app.route("/scrape")
+def scrape_button():
+    mongo.db.mars_data.drop()
+    results = scrape_mars.scrape()
+    mars_data = mongo.db.mars_data
+    mars_data.update({}, results, upsert=True)
+    return redirect("/", code=302)
 
 if __name__ == "__main__":
     app.run(debug=True)
