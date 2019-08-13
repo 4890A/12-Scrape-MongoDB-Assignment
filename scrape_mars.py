@@ -8,7 +8,7 @@ import re
 
 def init_browser():
     executable_path = {"executable_path": "/usr/local/bin/chromedriver"}
-    return Browser("chrome", **executable_path, headless=True)
+    return Browser("chrome", **executable_path, headless=False)
 
 
 def scrape_info(url):
@@ -45,7 +45,6 @@ def scrape_nasa_spaceimages():
     browser.click_link_by_partial_text("FULL IMAGE")
     time.sleep(1)
     soup = bs(browser.html, "lxml")
-    soup.find()
     # finds the relative path to the image, and converts it to a full image path
     img_url = (
         "https://www.jpl.nasa.gov/spaceimages/"
@@ -69,24 +68,18 @@ def scrape_table():
     html = requests.get("https://space-facts.com/mars/").content
     # the second table has mars's facts
     df = pd.read_html(html)[1]
-    return df
+    return df.to_html(classes="table", border=0)
 
 
 def scrape_hemisphere():
-    wayback = "https://web.archive.org/web/20181114171728/"
-    # wayback = ""
-    html = requests.get(
-        wayback
-        + "https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars"
+    html = requests.get("https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars"
     ).content
     soup = bs(html, "lxml")
     items = soup.find_all("div", class_="item")
-    # urls = ["https://astrogeology.usgs.gov" + item.find('a')['href'] for item in items]
-    urls = ["https://web.archive.org" + item.find("a")["href"] for item in items]
-    print(urls)
+    urls = ["https://astrogeology.usgs.gov" + item.find('a')['href'] for item in items]
+    # urls = ["https://web.archive.org" + item.find("a")["href"] for item in items]
     hemisphere_image_urls = []
     for path in urls:
-        print(path)
         soup_hemisphere = bs(requests.get(path).content, "lxml")
         title = soup_hemisphere.find("h2", class_="title").text
         img_url = soup_hemisphere.find("div", class_="downloads").find("a")["href"]
@@ -108,4 +101,5 @@ def scrape():
         "facts_df": facts_df,
         "hemisphere_img_urls": hemisphere_img_urls,
     }
+    print(results)
     return results
